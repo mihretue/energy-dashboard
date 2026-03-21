@@ -1,23 +1,55 @@
 # 📊 Energy Analytics Dashboard (MVP)
 
-A simple AI-powered energy analytics dashboard that processes electricity usage data from CSV/Excel invoices and generates insights, summaries, and visualizations.
+An AI-powered full-stack energy analytics platform that processes electricity usage data from CSV/Excel files and generates insights, metrics, and interactive visualizations.
 
 ---
 
-## 🚀 Features
+## 🚀 Overview
 
-- 📁 Upload CSV / Excel files
-- 🔄 Automatic data parsing and normalization
-- 📊 Basic metrics:
-  - Total electricity consumption (kWh)
-  - Total electricity cost
-  - Cost per kWh
+This application allows users to upload energy consumption data and:
 
-- 📈 Data preview after upload
-- 🧠 Extensible structure for AI/ML features:
-  - Anomaly detection
-  - Usage forecasting
-  - Trend analysis
+- Parse and normalize datasets
+- Compute key business metrics
+- Visualize trends and anomalies
+- Interact with a modern dashboard UI
+- Lay the foundation for AI-driven analytics (anomaly detection, forecasting, etc.)
+
+---
+
+## ✨ Features
+
+### 📁 Data Ingestion
+
+- Upload CSV / Excel files
+- Drag & drop support
+- Paste CSV input directly
+
+### 🔄 Data Processing
+
+- Automatic parsing and normalization
+- Flexible column mapping
+- Data validation and error handling
+
+### 📊 Metrics
+
+- Total energy consumption (kWh)
+- Total energy cost
+- Cost per kWh
+- Month-over-month trends
+
+### 📈 Visualizations
+
+- Line charts (consumption trends)
+- Bar charts (monthly comparison)
+- Area charts (growth trends)
+- Anomaly highlighting
+
+### 🧠 AI-Ready Extensions
+
+- Anomaly detection
+- Forecasting models
+- Pattern recognition
+- Insight generation
 
 ---
 
@@ -28,28 +60,43 @@ A simple AI-powered energy analytics dashboard that processes electricity usage 
 - FastAPI
 - Pandas
 - Python 3.10+
+- Uvicorn
 
-### Frontend (Planned / In Progress)
+### Frontend
 
-- Next.js
+- Next.js (App Router)
+- React
 - Axios
-- Charting library (Recharts / Chart.js)
+- Recharts
+- Tailwind CSS
+- Framer Motion
+- Lucide Icons
 
 ---
 
 ## 📂 Project Structure
 
-```
+```text
 energy-dashboard/
 │
 ├── backend/
 │   ├── main.py
 │   ├── __init__.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── parser.py
+│   └── services/
+│       ├── __init__.py
+│       └── parser.py
 │
-├── frontend/ (coming soon)
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx
+│   │   └── layout.tsx
+│   │
+│   ├── services/
+│   │   └── api.ts
+│   │
+│   ├── components/
+│   ├── shared/
+│   └── styles/
 │
 └── README.md
 ```
@@ -67,53 +114,110 @@ cd energy-dashboard
 
 ---
 
-### 2. Create virtual environment
+## 🖥️ Backend Setup
+
+### Create virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-Activate it:
+Activate:
 
-**Windows:**
+**Windows**
 
 ```bash
 venv\Scripts\activate
 ```
 
-**Mac/Linux:**
+**Mac/Linux**
 
 ```bash
 source venv/bin/activate
 ```
 
----
-
-### 3. Install dependencies
+### Install dependencies
 
 ```bash
 pip install fastapi uvicorn pandas openpyxl python-multipart
 ```
 
----
-
-### 4. Run the backend
-
-From the project root:
+### Run backend
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
----
-
-### 5. Open API docs
-
-Visit:
+API available at:
 
 ```
 http://127.0.0.1:8000/docs
 ```
+
+---
+
+## 🌐 Frontend Setup
+
+### Install dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+### Run frontend
+
+```bash
+npm run dev
+```
+
+Frontend runs at:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 🔌 Frontend Architecture
+
+### App Layer
+
+- Built using **Next.js App Router**
+- Main dashboard lives in:
+
+  ```
+  frontend/app/page.tsx
+  ```
+
+- Handles:
+  - UI rendering
+  - State management
+  - User interactions
+  - Theme switching (light/dark)
+
+---
+
+### Services Layer
+
+Centralized API communication:
+
+```
+frontend/services/api.ts
+```
+
+Responsibilities:
+
+- Handles HTTP requests to backend
+- Uploads files (CSV/Excel)
+- Returns parsed and processed data
+- Keeps UI decoupled from backend logic
+
+Example responsibilities:
+
+- `uploadFile(file)`
+- API base configuration
+- Request/response handling
 
 ---
 
@@ -125,15 +229,20 @@ Upload a CSV or Excel file.
 
 **Request:**
 
-- Form-data:
-  - `file`: CSV or Excel file
+- `file` (form-data)
 
 **Response:**
 
 ```json
 {
   "columns": ["date", "consumption", "cost"],
-  "preview": [...]
+  "preview": [...],
+  "monthly": [...],
+  "metrics": {
+    "total_consumption": 12345,
+    "total_cost": 6789,
+    "cost_per_kwh": 0.55
+  }
 }
 ```
 
@@ -141,16 +250,14 @@ Upload a CSV or Excel file.
 
 ## 📌 Supported File Formats
 
-- CSV (.csv)
-- Excel (.xlsx)
+- CSV (`.csv`)
+- Excel (`.xlsx`, `.xls`)
 
 ---
 
 ## 🧠 Data Mapping Logic
 
-The system automatically maps different column names into standardized fields:
-
-| Standard Field | Possible Variations     |
+| Standard Field | Variations              |
 | -------------- | ----------------------- |
 | consumption    | kwh, usage, consumption |
 | cost           | cost, amount, bill      |
@@ -160,16 +267,17 @@ The system automatically maps different column names into standardized fields:
 
 ## ⚠️ Requirements
 
-- Files must include at least:
-  - Date / Month
-  - Electricity Consumption
-  - Electricity Cost
+Files must include:
 
-If required columns are missing, the system will return an error.
+- Date / Month
+- Consumption
+- Cost
+
+Missing fields will trigger validation errors.
 
 ---
 
-## 🧪 Example Input Format
+## 🧪 Example Input
 
 ```csv
 Date,Consumption,Cost
@@ -181,14 +289,17 @@ Date,Consumption,Cost
 
 ## 🛣️ Roadmap
 
-- [x] File upload & parsing
-- [x] Data normalization
-- [ ] Dashboard UI (Next.js)
-- [ ] Charts & visualizations
+- [x] Backend API (FastAPI)
+- [x] File parsing & normalization
+- [x] Frontend dashboard (Next.js)
+- [x] Charts & visualizations
+- [x] API service layer
+- [x] Theme support (light/dark)
 - [ ] AI anomaly detection
-- [ ] Usage forecasting (ML)
+- [ ] Forecasting models
 - [ ] PDF report generation
 - [ ] Invoice OCR integration
+- [ ] User authentication
 
 ---
 
@@ -200,9 +311,10 @@ This project is for portfolio and demonstration purposes.
 
 ## 👨‍💻 Author
 
-Built as part of an AI/Data analytics MVP to demonstrate:
+Built as a full-stack MVP demonstrating:
 
-- Data pipeline design
-- API development
-- AI/ML readiness
-- Dashboard integration
+- API design and backend engineering
+- Scalable frontend architecture
+- Data processing pipelines
+- UI/UX dashboard design
+- Integration between frontend and backend services
