@@ -16,6 +16,7 @@ import {
   ComposedChart,
   Cell,
   ReferenceLine,
+  ZAxis,
 } from "recharts";
 
 // --- Helper Functions ---
@@ -313,7 +314,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [csvUploading, setCsvUploading] = useState(false);
   const [error, setError] = useState("");
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/";
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -352,7 +353,7 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await axios.post("http://127.0.0.1:8000/upload", formData);
+      const res = await axios.post(`${API_URL}upload`, formData);
       setData(res.data);
     } catch (err: any) {
       setError(
@@ -375,7 +376,7 @@ export default function Home() {
       const csvFile = new File([blob], "pasted-data.csv", { type: "text/csv" });
       const formData = new FormData();
       formData.append("file", csvFile);
-      const res = await axios.post("http://127.0.0.1:8000/upload", formData);
+      const res = await axios.post(`${API_URL}upload`, formData);
       setData(res.data);
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Invalid CSV format.");
@@ -538,9 +539,9 @@ export default function Home() {
                         data={anomalyPoints}
                         dataKey="consumption"
                         fill="#ef4444"
-                        shape="circle"
-                        size={80}
-                      />
+                        shape="circle">
+                        <ZAxis type="number" range={[80, 80]} />
+                      </Scatter>
                       {/* Highlight highest and lowest points */}
                       {highestMonth && (
                         <ReferenceLine
