@@ -3,6 +3,7 @@ from services.parser import parse_file
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
+from statsmodels.tsa.arima.model import ARIMA
 import pandas as pd
 import numpy as np
 
@@ -45,7 +46,9 @@ async def upload_file(file: UploadFile = File(...)):
             detail=f"Missing required columns: {missing_cols}"
         )
 
+    # -------------------------
     # Clean + types
+    # -------------------------
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date", "consumption", "cost"])
 
@@ -69,7 +72,9 @@ async def upload_file(file: UploadFile = File(...)):
         monthly["prev_consumption"] * 100
     )
 
-    monthly["growth_pct"] = monthly["growth_pct"].replace([np.inf, -np.inf], np.nan).fillna(0)
+    monthly["growth_pct"] = monthly["growth_pct"].replace(
+        [np.inf, -np.inf], np.nan
+    ).fillna(0)
 
     # -------------------------
     # Stats
@@ -82,7 +87,7 @@ async def upload_file(file: UploadFile = File(...)):
     cost_per_kwh = total_cost / total_consumption if total_consumption > 0 else 0
 
     # -------------------------
-    # Anomaly Detection
+    # Anomaly Detection (Z-score)
     # -------------------------
     mean = monthly["consumption"].mean()
     std = monthly["consumption"].std()
@@ -131,6 +136,28 @@ async def upload_file(file: UploadFile = File(...)):
         insights.append("No significant anomalies detected.")
 
     # -------------------------
+    # Forecasting (ARIMA)
+    # -------------------------
+    monthly_sorted = monthly.sort_values("month")
+    ts = monthly_sorted["consumption"]
+
+    forecast_values = []
+
+    if len(ts) >= 5:
+        try:
+            model = ARIMA(ts, order=(1, 1, 1))
+            model_fit = model.fit()
+
+            forecast = model_fit.forecast(steps=3)
+
+            forecast_values = [float(x) for x in forecast]
+
+        except Exception:
+            forecast_values = []
+    else:
+        forecast_values = []
+
+    # -------------------------
     # Clean for JSON
     # -------------------------
     monthly = clean_for_json(monthly)
@@ -149,6 +176,7 @@ async def upload_file(file: UploadFile = File(...)):
         "anomalies": anomalies,
         "insights": insights,
         "preview": preview.to_dict(orient="records"),
+        "forecast": forecast_values
     }
 
 
